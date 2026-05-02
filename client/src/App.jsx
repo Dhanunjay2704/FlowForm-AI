@@ -1,21 +1,14 @@
-import { Link, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { useAuth } from './contexts/AuthContext'
-import { useTheme } from './contexts/ThemeContext'
 import BuilderPage from './pages/BuilderPage'
 import DashboardPage from './pages/DashboardPage'
 import PublicFormPage from './pages/PublicFormPage'
 import AuthPage from './pages/AuthPage'
 import LandingPage from './pages/LandingPage'
-
-function ThemeToggle() {
-  const { theme, toggleTheme } = useTheme()
-
-  return (
-    <button className="theme-toggle" onClick={toggleTheme} type="button">
-      <span>{theme === 'dark' ? 'Light mode' : 'Night mode'}</span>
-    </button>
-  )
-}
+import FormRoute from './pages/FormRoute'
+import FormPreviewPage from './pages/FormPreviewPage'
+import FormSuccessPage from './pages/FormSuccessPage'
+import GlobalNavbar from './components/GlobalNavbar'
 
 function ProtectedRoute({ children }) {
   const { token, loading } = useAuth()
@@ -36,7 +29,7 @@ function HomeRoute() {
   const { token, loading } = useAuth()
 
   if (loading) {
-    return <main className="page centered-page">Preparing FormForge AI...</main>
+    return <main className="page centered-page">Preparing FlowForm AI...</main>
   }
 
   return token ? <Navigate to="/workspace" replace /> : <LandingPage />
@@ -47,30 +40,7 @@ export default function App() {
 
   return (
     <div className="app-shell">
-      <header className="topbar">
-        <div className="topbar-left">
-          <Link className="brand" to={token ? '/workspace' : '/'}>
-            FormForge AI
-          </Link>
-          <p className="topbar-copy">Prompt to form, with a cleaner builder and focused response flow.</p>
-        </div>
-
-        <div className="topbar-actions">
-          <ThemeToggle />
-          {token ? (
-            <>
-              <span className="user-chip">{user?.name || 'Creator'}</span>
-              <button className="ghost-btn" type="button" onClick={logout}>
-                Logout
-              </button>
-            </>
-          ) : (
-            <Link className="ghost-btn" to="/auth">
-              Sign in
-            </Link>
-          )}
-        </div>
-      </header>
+      <GlobalNavbar />
 
       <Routes>
         <Route path="/" element={<HomeRoute />} />
@@ -91,7 +61,12 @@ export default function App() {
             </ProtectedRoute>
           }
         />
-        <Route path="/forms/:slug" element={<PublicFormPage />} />
+        <Route path="/forms/:slug/*" element={<FormRoute />}>
+          <Route index element={<PublicFormPage />} />
+          <Route path="preview" element={<FormPreviewPage />} />
+          <Route path="success" element={<FormSuccessPage />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
 
       <div className="app-watermark">PoweredBy - NxtMock</div>
